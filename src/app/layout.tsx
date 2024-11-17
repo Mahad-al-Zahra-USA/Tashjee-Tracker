@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import Image from "next/image";
+import Link from "next/link";
 import "bootstrap/dist/css/bootstrap.min.css"; // Import precompiled Bootstrap css for entire project
 import "./globals.css"; // Import global css file (including bootstrap css overrides)
 
@@ -32,7 +34,55 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <div className="container-fluid d-flex justify-content-between bg-primary">
+          <Image src="/maz_logo_banner.png" alt="logo" width={60} height={60} />
+          <nav className="navbar navbar-expand-sm">
+            <div className="container-fluid">
+              {/* <a className="navbar-brand" href="#">
+                MAZ Tashjee/Tambeeh
+              </a> */}
+              <button
+                className="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span className="navbar-toggler-icon"></span>
+              </button>
+              <div className="collapse navbar-collapse" id="navbarNav">
+                <ul className="navbar-nav">
+                  <li className="nav-item">
+                    <Link className="nav-link" href="/">
+                      Home
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link" href="/form">
+                      Form
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <a className="nav-link" href="#">
+                      Reports
+                    </a>
+                  </li>
+                  <li className="nav-item">
+                    <a className="nav-link" href="#">
+                      Settings
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        {/* {main content} */}
+        {children}
+      </body>
     </html>
   );
 }
