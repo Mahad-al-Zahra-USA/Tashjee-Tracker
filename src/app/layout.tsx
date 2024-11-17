@@ -17,6 +17,12 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "MAZ Tashjee/Tambeeh",
   description: "Home Page",
+  icons: [
+    { rel: "icon", url: "/favicon_16x16.png", sizes: "16x16" },
+    { rel: "icon", url: "/favicon_32x32.png", sizes: "32x32" },
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png", sizes: "180x180" },
+    { rel: "icon", url: "/favicon_32x32.png" }, // Fallback icon
+  ],
 };
 
 export default function RootLayout({
