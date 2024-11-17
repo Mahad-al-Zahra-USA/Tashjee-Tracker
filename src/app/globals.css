@@ -47,6 +47,11 @@
   --bs-progress-bar-secondary-bg: var(--bs-secondary);
 }
 
+/* text overrides */
+.bg-primary > * {
+  color: var(--background);
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
