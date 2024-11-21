@@ -1,50 +1,92 @@
 :root {
+  /* ----- Base color overrides ----- */
   --background: #fff6e5;
   --foreground: #312727;
+
   /* ----- Base primary color overrides ----- */
   --bs-primary: #5a0506; /* New primary color */
   --bs-primary-rgb: 90, 5, 6; /* RGB for transparency-related styles */
-
-  /* Related variables derived from or similar to primary */
-  --bs-btn-bg: var(--bs-primary);
-  --bs-btn-border-color: var(--bs-primary);
-  --bs-link-color: var(--bs-primary);
-  --bs-link-hover-color: #7a0b0c; /* Example of a darker variant */
-
-  /* Alerts */
-  --bs-alert-bg: var(--bs-primary);
-  --bs-alert-border: var(--bs-primary);
-  --bs-alert-color: #fff; /* Contrasting color */
-
-  /* Badges */
-  --bs-badge-bg: var(--bs-primary);
+  --bs-btn-bg: var(--bs-primary); /* Primary button background */
+  --bs-btn-border-color: var(--bs-primary); /* Primary button border */
+  --bs-link-color: var(--bs-primary); /* Link color */
+  --bs-link-hover-color: #7a0b0c; /* Darker variant for hover */
+  --bs-alert-bg: var(--bs-primary); /* Alert background */
+  --bs-alert-border: var(--bs-primary); /* Alert border */
+  --bs-alert-color: #fff; /* Alert text color */
+  --bs-badge-bg: var(--bs-primary); /* Badge background */
   --bs-badge-color: #fff; /* Badge text color */
-
-  /* Progress */
-  --bs-progress-bar-bg: var(--bs-primary);
+  --bs-progress-bar-bg: var(--bs-primary); /* Progress bar color */
 
   /* ----- Base secondary color overrides ----- */
-  --bs-secondary: #f0bf58; /* New secondary color */
-  --bs-secondary-rgb: 240, 191, 88; /* RGB for transparency-related styles */
+  --bs-secondary: #f0bf58; /* Secondary color */
+  --bs-secondary-rgb: 240, 191, 88; /* RGB for secondary color */
+  --bs-btn-secondary-bg: var(--bs-secondary); /* Secondary button background */
+  --bs-btn-secondary-border-color: var(--bs-secondary); /* Secondary button border */
+  --bs-btn-secondary-hover-bg: #e6b550; /* Darker hover for secondary button */
+  --bs-btn-secondary-hover-border-color: #d9a845; /* Darker hover border */
+  --bs-btn-secondary-color: #000; /* Text color for secondary buttons */
 
-  /* Related variables derived from or similar to secondary */
-  --bs-btn-secondary-bg: var(--bs-secondary);
-  --bs-btn-secondary-border-color: var(--bs-secondary);
-  --bs-btn-secondary-hover-bg: #e6b550; /* Slightly darker shade for hover state */
-  --bs-btn-secondary-hover-border-color: #d9a845;
-  --bs-btn-secondary-color: #000; /* Text color */
+  /* ----- Alert styles for secondary ----- */
+  --bs-alert-secondary-bg: var(--bs-secondary); /* Secondary alert background */
+  --bs-alert-secondary-border: var(--bs-secondary); /* Secondary alert border */
+  --bs-alert-secondary-color: #000; /* Text color for secondary alerts */
 
-  /* Alerts */
-  --bs-alert-secondary-bg: var(--bs-secondary);
-  --bs-alert-secondary-border: var(--bs-secondary);
-  --bs-alert-secondary-color: #000; /* Black for better text contrast */
+  /* ----- Badge styles for secondary ----- */
+  --bs-badge-secondary-bg: var(--bs-secondary); /* Badge background for secondary */
+  --bs-badge-secondary-color: #000; /* Text color for secondary badges */
 
-  /* Badges */
-  --bs-badge-secondary-bg: var(--bs-secondary);
-  --bs-badge-secondary-color: #000; /* Badge text color */
+  /* ----- Progress bar for secondary ----- */
+  --bs-progress-bar-secondary-bg: var(--bs-secondary); /* Progress bar secondary color */
+}
 
-  /* Progress */
-  --bs-progress-bar-secondary-bg: var(--bs-secondary);
+/* Make sure to override the hover and active states for buttons */
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary) !important;
+  --bs-btn-border-color: var(--bs-primary) !important;
+  --bs-btn-hover-bg: #7a0b0c !important; /* Custom hover background */
+  --bs-btn-hover-border-color: #7a0b0c !important; /* Custom hover border */
+  --bs-btn-focus-shadow-rgb: 49, 132, 253 !important;
+  --bs-btn-active-bg: #7a0b0c !important; /* Custom active background */
+  --bs-btn-active-border-color: #7a0b0c !important;
+}
+
+.btn-secondary {
+  --bs-btn-bg: var(--bs-secondary) !important;
+  --bs-btn-border-color: var(--bs-secondary) !important;
+  --bs-btn-hover-bg: #e6b550 !important;
+  --bs-btn-hover-border-color: #d9a845 !important;
+}
+
+.alert {
+  --bs-alert-bg: var(--bs-primary) !important;
+  --bs-alert-border: var(--bs-primary) !important;
+  --bs-alert-color: #fff !important;
+}
+
+.alert-secondary {
+  --bs-alert-bg: var(--bs-secondary) !important;
+  --bs-alert-border: var(--bs-secondary) !important;
+  --bs-alert-color: #000 !important;
+}
+
+/* Badge colors */
+.badge-primary {
+  --bs-badge-bg: var(--bs-primary) !important;
+  --bs-badge-color: #fff !important;
+}
+
+.badge-secondary {
+  --bs-badge-bg: var(--bs-secondary) !important;
+  --bs-badge-color: #000 !important;
+}
+
+/* Progress bars */
+.progress-bar {
+  background-color: var(--bs-primary) !important;
+}
+
+.progress-bar-secondary {
+  background-color: var(--bs-secondary) !important;
 }
 
 /* text overrides */
@@ -70,4 +112,13 @@ body {
 
 .navbar a:hover {
   color: white;
+}
+
+/*Form overrides*/
+
+.form-control,
+.form-select,
+.form-check-input {
+  background-color: var(--background);
+  color: var(--foreground);
 }
