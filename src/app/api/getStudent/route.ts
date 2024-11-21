@@ -7,42 +7,44 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
-// Handle the GET request to fetch a specific student by ID
 export async function GET(req: NextRequest) {
   try {
-    // Extract the 'id' query parameter from the request
-    const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get("id");
-
-    if (!studentId) {
+    // Fetch student data from the 'students' table where current_student is true
+    const { data, error } = await supabase
+    .from('students')
+    .select('first_name, last_name')  // Correct way to select multiple columns
+    .eq('current_student', true);
+    
+    // Handle errors from the query
+    if (error) {
+      console.error("Error fetching students:", error.message);
       return NextResponse.json(
-        { success: false, error: "Student ID is required" },
-        { status: 400 }
+        { success: false, error: error.message },
+        { status: 500 }
       );
     }
 
-    // Attempt to fetch the student data from the 'students' table
-    const { data, error } = await supabase
-      .from("students")
-      .select("*")
-      .eq("id", studentId)
-      .single(); // .single() ensures only one row is returned
-
-    if (error) throw error;
-
-    if (!data) {
+    // If no data is found, return a 404 response
+    if (!data || data.length === 0) {
       return NextResponse.json(
-        { success: false, error: "Student not found" },
+        { success: false, error: "No students found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, data });
-  } catch (error: any) {
-    console.error("Error fetching student data:", error.message);
+    // Return the data successfully
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: true, data: data },
+      { status: 200 }
+    );
+    
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    // Handle unexpected errors
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
 }
+

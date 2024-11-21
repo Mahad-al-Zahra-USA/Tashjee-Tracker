@@ -7,30 +7,44 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
-// Handle the GET request to fetch students with negative points
 export async function GET(req: NextRequest) {
   try {
-    // Attempt to fetch the students with negative points from the 'students' table
+    // Fetch tambeeh data from the 'events' table where points is negative 
     const { data, error } = await supabase
-      .from("students")
-      .select("id, name, points") // Select relevant fields (id, name, points)
-      .lt("points", 0); // Filter for negative points
+    .from('events')
+    .select('name')  // Correct way to select multiple columns
+    .lt('points', 0);
+    
+    // Handle errors from the query
+    if (error) {
+      console.error("Error fetching Tambeeh:", error.message);
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
 
-    if (error) throw error;
-
+    // If no data is found, return a 404 response
     if (!data || data.length === 0) {
       return NextResponse.json(
-        { success: false, error: "No students with negative points found" },
+        { success: false, error: "No Tambeeh found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, data });
-  } catch (error: any) {
-    console.error("Error fetching negative points data:", error.message);
+    // Return the data successfully
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: true, data: data },
+      { status: 200 }
+    );
+    
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    // Handle unexpected errors
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
 }
+
