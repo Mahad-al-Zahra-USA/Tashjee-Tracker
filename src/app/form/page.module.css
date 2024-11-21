@@ -1,0 +1,13 @@
+.form_group {
+  display: flex;
+  margin-bottom: 1.5rem;
+  justify-content: start;
+  align-content: center;
+}
+
+.form_label {
+  margin-bottom: 0;
+  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+}

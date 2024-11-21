@@ -1,3 +1,4 @@
+import Link from "next/link";
 export default function FormSubmition() {
   return (
     <>
@@ -11,9 +12,11 @@ export default function FormSubmition() {
               </h5>
             </div>
             {/* New Response button */}
-            <button className="btn bg-secondary w-100 fs-5 fs-sm-3 fs-md-4 fw-bold" style={{ height: "10vh" }}>
-              Submit Another Response
-            </button>
+            <Link href="/form">
+              <button className="btn bg-secondary w-100 fs-5 fs-sm-3 fs-md-4 fw-bold" style={{ height: "10vh" }}>
+                Submit Another Response
+              </button>
+            </Link>
           </div>
         </div>
       </div>
