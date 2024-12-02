@@ -9,42 +9,28 @@ const supabase = createClient(
 
 export async function GET(req: NextRequest) {
   try {
-    // Fetch student data from the 'students' table where current_student is true
+    // Fetch current students from the database
     const { data, error } = await supabase
-    .from('students')
-    .select('first_name, last_name')  // Correct way to select multiple columns
-    .eq('current_student', true);
-    
+      .from("students")
+      .select("id, first_name, last_name, house_id")
+      .eq("current_student", true);
+
     // Handle errors from the query
     if (error) {
       console.error("Error fetching students:", error.message);
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    // If no data is found, return a 404 response
+    // If no data is found, return a 404 response - should not happen
     if (!data || data.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "No students found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "No students found" }, { status: 404 });
     }
 
     // Return the data successfully
-    return NextResponse.json(
-      { success: true, data: data },
-      { status: 200 }
-    );
-    
+    return NextResponse.json({ success: true, data: data }, { status: 200 });
   } catch (err) {
     console.error("Unexpected error:", err);
     // Handle unexpected errors
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }
 }
-

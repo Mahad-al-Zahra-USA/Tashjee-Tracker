@@ -1,91 +1,82 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { validate as isUUID } from "uuid";
 
-// Initialize the Supabase client
+// Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
-export async function POST(req: NextRequest) {
-  const {
-    event_name,
-    student_first_name,
-    student_last_name,
-    house_id, // Optional, will be fetched from the student record if not provided
-    event_details, // Update to use the correct column name 'event_details'
-  } = await req.json(); // Parse JSON body from the request
-
-  try {
-    // 1. Get the event_id and use it for event_types_id from the event_name if not provided
-    let event_types_id_to_use: string | undefined = undefined;
-
-    if (event_name) {
-      const { data: eventData, error: eventError } = await supabase
-        .from('events') // Assuming there's an 'events' table with name and id
-        .select('id')
-        .eq('name', event_name) // Find event by name
-        .single();
-
-      if (eventError || !eventData) {
-        console.error("Event error:", eventError);  // Log the specific error
-        return NextResponse.json({ error: 'Event not found' }, { status: 400 });
-      }
-
-      event_types_id_to_use = eventData.id; // Set event_types_id to the event ID (this is the event_types_id value)
-    } else {
-      return NextResponse.json({ error: 'Event name is required' }, { status: 400 });
-    }
-
-    // 2. Get the student_id and house_id based on first_name and last_name
-    if (!student_first_name || !student_last_name) {
-      return NextResponse.json({ error: 'First and Last Name are required for student lookup' }, { status: 400 });
-    }
-
-    const { data: studentData, error: studentError } = await supabase
-      .from('students') // Assuming the 'students' table has first_name, last_name, student_id, and house_id
-      .select('id, house_id')
-      .eq('first_name', student_first_name)
-      .eq('last_name', student_last_name)
-      .single();
-
-    if (studentError || !studentData) {
-      console.error("Student error:", studentError);  // Log the specific error
-      return NextResponse.json({ error: 'Student not found' }, { status: 400 });
-    }
-
-    const student_id = studentData.id;
-    const student_house_id = studentData.house_id;
-
-    // If house_id was not provided in the request, use the house_id from the student's data
-    const house_id_to_use = house_id || student_house_id;
-
-    // 3. Insert the row into the event_log table with event_id set to null
-    const { data, error } = await supabase
-      .from('event_log')
-      .insert([
-        {
-          event_id: null,  // Always set event_id to null
-          event_types_id: event_types_id_to_use,  // Use the correct column name 'event_types_id'
-          student_id,
-          house_id: house_id_to_use,
-          event_details: event_details || null,  // Use event_details as the column name
-          created_at: new Date(), // Use the current time as created_at
-          updated_at: null, // Optionally include updated_at if it is part of the form
-        },
-      ]);
-
-    if (error) {
-      console.error("Insertion error:", error);  // Log the specific error
-      return NextResponse.json({ error: 'Failed to log event', details: error.message }, { status: 500 });
-    }
-
-    // Return success response
-    return NextResponse.json({ message: 'Event logged successfully', data }, { status: 201 });
-
-  } catch (error) {
-    console.error("Unexpected error:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+interface RequestBody {
+  studentIds: string[]; // Array of student UUIDs
+  eventTypeId: number;
+  notes?: string; // Optional event notes
+  sendEmail: boolean; // Flag to send an email or not
 }
 
+export async function POST(req: NextRequest) {
+  try {
+    const { studentIds, eventTypeId, notes, sendEmail }: RequestBody = await req.json();
+
+    // Validation stage - can be improved further
+
+    // Validate student IDs array
+    if (!Array.isArray(studentIds) || studentIds.length === 0) {
+      return NextResponse.json({ error: "At least one student must be selected" }, { status: 400 });
+    }
+
+    // Validate each student ID format
+    if (!studentIds.every((id) => typeof id === "string" && isUUID(id))) {
+      return NextResponse.json({ error: "Invalid student ID format" }, { status: 400 });
+    }
+
+    if (!Number.isInteger(eventTypeId)) {
+      return NextResponse.json({ error: "Invalid event type ID format" }, { status: 400 });
+    }
+
+    // Create the event instance once in the event_log table for all participating students
+    const { data: newEvent, error: createEventError } = await supabase
+      .from("event_log")
+      .insert({ event_type_id: eventTypeId, event_details: notes })
+      .select("*")
+      .single();
+
+    if (createEventError) {
+      console.error("Create event error:", createEventError);
+      return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
+    }
+
+    // Add all participating students to the event_participants table
+    const participantInserts = studentIds.map((studentId) => ({
+      event_id: newEvent.id,
+      student_id: studentId,
+    }));
+
+    const { data: participantData, error: participantError } = await supabase
+      .from("event_participants")
+      .insert(participantInserts);
+
+    if (participantError) {
+      console.error("Participant insert error:", participantError);
+      return NextResponse.json({ error: "Failed to add participant" }, { status: 500 });
+    }
+
+    // 3. Send email if required (TODO - maybe another api endpoint)
+
+    // 4. Return the success response with the event ID
+    return NextResponse.json(
+      { message: "Event logged successfully", eventId: newEvent.id, participants: studentIds },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
