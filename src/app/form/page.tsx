@@ -1,21 +1,148 @@
+"use client";
+
 import classNames from "classnames";
 import styles from "./page.module.css";
-import Link from "next/link";
+import { useEffect, useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+
+interface Student {
+  id: number;
+  first_name: string;
+  last_name: string;
+  house_id: number;
+}
+
+interface Event {
+  id: number; // This is actually the event_types_id
+  name: string;
+  description: string;
+  points: number;
+  send_email: boolean;
+}
+
+interface RequestBody {
+  studentIds: string[]; // Changed to array
+  // ...existing interface properties...
+}
+
 export default function Form() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [points, setPoints] = useState<number>(0);
+  const [sendEmail, setSendEmail] = useState<boolean>(false);
+
+  // Router hook to redirect after form submission
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [studentsRes, categoriesRes, eventsRes] = await Promise.all([
+          fetch("/api/getStudent"),
+          fetch("/api/getCategory"),
+          fetch("/api/getEvent"),
+        ]);
+
+        const studentsData = await studentsRes.json();
+        // console.log(studentsData);
+        const categoriesData = await categoriesRes.json();
+        // console.log(categoriesData);
+        const eventsData = await eventsRes.json();
+        // console.log(eventsData);
+
+        setStudents(studentsData.data);
+        setCategories(categoriesData.data);
+        setEvents(eventsData.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  const handleEventChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const eventTypeId = parseInt(event.target.value, 10);
+    const eventObj = events.find((e) => e.id === eventTypeId) || null;
+    if (eventObj) {
+      setPoints(eventObj.points);
+      setSendEmail(eventObj.send_email);
+    } else {
+      setPoints(0);
+      setSendEmail(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+
+    // Get all selected student IDs
+    const select = e.currentTarget.querySelector('select[name="studentName"]') as HTMLSelectElement;
+    const studentIds = Array.from(select.selectedOptions).map((option) => option.value);
+    const eventTypeId = formData.get("event");
+    const notes = formData.get("notes");
+    const sendEmail = formData.get("sendEmail") === "on";
+
+    // Validate multiple students
+    if (!studentIds.length) {
+      alert("Please select at least one student");
+      return;
+    }
+
+    // Add validation
+    if (!eventTypeId || eventTypeId === "Select event") {
+      alert("Please select an event");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/submitForm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentIds: studentIds.map(String), // Ensure UUIDs are passed as strings
+          eventTypeId: Number(eventTypeId),
+          notes: notes || null,
+          sendEmail,
+        }),
+      });
+
+      const result = await response.json();
+      console.log("API Response:", result);
+      if (response.ok) {
+        // Redirect to the form submission page
+        router.push("/form/form-submit");
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Failed to submit form. Please try again.");
+    }
+  };
+
   return (
     <>
       <div className="container">
         <div className="row justify-content-center align-content-center">
           <div className="col-sm-8 h-75">
             <div className="card bg-secondary p-2 my-3">
-              <form>
+              <form onSubmit={handleSubmit}>
                 <div className={styles.form_group}>
                   <label htmlFor="studentName" className={styles.form_label}>
                     Student:
                   </label>
-                  <select className="form-select" id="studentName">
-                    <option>Select student</option>
-                    {/* Add options here */}
+                  <select className="form-select" id="studentName" name="studentName" multiple>
+                    <option disabled>Select students</option>
+                    {students.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {`${student.first_name} ${student.last_name}`}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.form_group}>
@@ -38,43 +165,56 @@ export default function Form() {
                   <label htmlFor="category" className={styles.form_label}>
                     Category:
                   </label>
-                  <select className="form-select" id="category">
+                  <select className="form-select" id="category" name="category">
                     <option>Select category</option>
-                    {/* Add options here */}
+                    {categories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.form_group}>
                   <label htmlFor="event" className={styles.form_label}>
                     Situation:
                   </label>
-                  <select className="form-select" id="event">
+                  <select className="form-select" id="event" name="event" onChange={handleEventChange}>
                     <option>Select event</option>
-                    {/* Add options here */}
+                    {events.map((event) => (
+                      <option key={event.id} value={event.id}>
+                        {event.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.form_group}>
                   <label htmlFor="points" className={styles.form_label}>
                     Points:
                   </label>
-                  <input type="number" className="form-control" id="points" />
+                  <input type="number" className="form-control" id="points" value={points} readOnly />
                 </div>
                 <div className={(classNames(styles.form_group), "d-block")}>
                   <label htmlFor="notes" className={styles.form_label}>
                     Notes (Optional):
                   </label>
-                  <textarea className="form-control" id="notes" rows={3}></textarea>
+                  <textarea className="form-control" id="notes" name="notes" rows={3}></textarea>
                 </div>
                 <div className={(classNames(styles.form_group), "form-check mt-3")}>
-                  <input type="checkbox" className="form-check-input" id="sendEmail" />
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id="sendEmail"
+                    name="sendEmail"
+                    checked={sendEmail}
+                    onChange={(e) => setSendEmail(e.target.checked)}
+                  />
                   Send Email
                   <label className="form-check-label" htmlFor="sendEmail"></label>
                 </div>
                 <div className="d-flex justify-content-center">
-                  <Link href="/form/form-submit">
-                    <button type="button" className="btn btn-primary">
-                      Submit
-                    </button>
-                  </Link>
+                  <button type="submit" className="btn btn-primary">
+                    Submit
+                  </button>
                 </div>
               </form>
             </div>
