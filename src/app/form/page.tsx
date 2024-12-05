@@ -199,7 +199,7 @@ export default function Form() {
                   </label>
                   <textarea className="form-control" id="notes" name="notes" rows={3}></textarea>
                 </div>
-                <div className={(classNames(styles.form_group), "form-check mt-3")}>
+                <div className={(classNames(styles.form_group), "form-check mt-3 ")} hidden>
                   <input
                     type="checkbox"
                     className="form-check-input"
