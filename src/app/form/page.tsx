@@ -4,12 +4,18 @@ import classNames from "classnames";
 import styles from "./page.module.css";
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Select from "react-select"; // Library for custom select dropdowns
 
 interface Student {
-  id: number;
+  id: string;
   first_name: string;
   last_name: string;
   house_id: number;
+}
+
+interface StudentOption {
+  value: string;
+  label: string;
 }
 
 interface Event {
@@ -20,17 +26,19 @@ interface Event {
   send_email: boolean;
 }
 
-interface RequestBody {
-  studentIds: string[]; // Changed to array
-  // ...existing interface properties...
-}
-
 export default function Form() {
   const [students, setStudents] = useState<Student[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [points, setPoints] = useState<number>(0);
   const [sendEmail, setSendEmail] = useState<boolean>(false);
+  const [selectedStudents, setSelectedStudents] = useState<StudentOption[]>([]);
+
+  // Map students to options for the Select component
+  const studentOptions: { value: string; label: string }[] = students.map((student) => ({
+    value: student.id,
+    label: `${student.first_name} ${student.last_name}`,
+  }));
 
   // Router hook to redirect after form submission
   const router = useRouter();
@@ -79,8 +87,9 @@ export default function Form() {
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
     // Get all selected student IDs
-    const select = e.currentTarget.querySelector('select[name="studentName"]') as HTMLSelectElement;
-    const studentIds = Array.from(select.selectedOptions).map((option) => option.value);
+    // const select = e.currentTarget.querySelector('select[name="studentName"]') as HTMLSelectElement;
+    // const studentIds = Array.from(select.selectedOptions).map((option) => option.value);
+    const studentIds = selectedStudents.map((student) => student.value);
     const eventTypeId = formData.get("event");
     const notes = formData.get("notes");
     const sendEmail = formData.get("sendEmail") === "on";
@@ -136,14 +145,17 @@ export default function Form() {
                   <label htmlFor="studentName" className={styles.form_label}>
                     Student:
                   </label>
-                  <select className="form-select" id="studentName" name="studentName" multiple>
-                    <option disabled>Select students</option>
-                    {students.map((student) => (
-                      <option key={student.id} value={student.id}>
-                        {`${student.first_name} ${student.last_name}`}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    isMulti
+                    name="studentName"
+                    options={studentOptions}
+                    className={styles.react_select_container}
+                    classNamePrefix="react-select"
+                    value={selectedStudents}
+                    onMenuOpen={() => console.log(document.querySelectorAll('[class^="custom-select"]'))}
+                    onChange={(newValue) => setSelectedStudents(newValue as StudentOption[])}
+                    placeholder="Select students"
+                  />
                 </div>
                 <div className={styles.form_group}>
                   <label className={styles.form_label}>Type:</label>
