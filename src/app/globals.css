@@ -122,3 +122,13 @@ body {
   background-color: var(--background);
   color: var(--foreground);
 }
+
+.nav-link {
+  text-decoration: none; /* Remove the default underline */
+  color: inherit; /* Ensures the text color remains consistent */
+}
+
+.nav-link:focus, .nav-link:active {
+  text-decoration: underline; /* Underline the text when the link is active or focused */
+  color: inherit; /* Keeps the text color unchanged */
+}
