@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 // Initialize the Supabase client
@@ -8,7 +8,7 @@ const supabase = createClient(
 );
 
 // Handle the GET request
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Attempt to fetch data from 'test_table'
     const { data, error } = await supabase.from("test_table").select("*").limit(1);
@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
-    console.error("Connection test failed:", error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error("Connection test failed:", error);
+    return NextResponse.json({ success: false, error: error }, { status: 500 });
   }
 }

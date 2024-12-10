@@ -19,6 +19,9 @@ export async function POST(req: NextRequest) {
   try {
     const { studentIds, eventTypeId, notes, sendEmail }: RequestBody = await req.json();
 
+    // Log email for MVP Build (remove later)
+    console.log("Email flag:", sendEmail);
+
     // Validation stage - can be improved further
 
     // Validate student IDs array
@@ -53,9 +56,7 @@ export async function POST(req: NextRequest) {
       student_id: studentId,
     }));
 
-    const { data: participantData, error: participantError } = await supabase
-      .from("event_participants")
-      .insert(participantInserts);
+    const { error: participantError } = await supabase.from("event_participants").insert(participantInserts);
 
     if (participantError) {
       console.error("Participant insert error:", participantError);
