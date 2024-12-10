@@ -155,6 +155,10 @@ export default function Form() {
                     onMenuOpen={() => console.log(document.querySelectorAll('[class^="custom-select"]'))}
                     onChange={(newValue) => setSelectedStudents(newValue as StudentOption[])}
                     placeholder="Select students"
+                    // Prevents Hydration Errors
+                    instanceId="student-selector"
+                    id="student-selector"
+                    aria-activedescendant={undefined}
                   />
                 </div>
                 <div className={styles.form_group}>
