@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     // Get the category from the query parameters (e.g., /api/event_types?category=Tahfeez)
     const categoryParam = req.nextUrl.searchParams.get("category");
 
-    let query = supabase.from("event_types").select("id, name, description, points, send_email");
+    let query = supabase.from("event_types").select("id, name, category, description, points, send_email");
 
     if (categoryParam) {
       // Fetch valid categories from the database

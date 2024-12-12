@@ -2,7 +2,7 @@
 
 import classNames from "classnames";
 import styles from "./page.module.css";
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Select from "react-select"; // Library for custom select dropdowns
 
@@ -21,6 +21,7 @@ interface StudentOption {
 interface Event {
   id: number; // This is actually the event_types_id
   name: string;
+  category: string;
   description: string;
   points: number;
   send_email: boolean;
@@ -33,17 +34,12 @@ export default function Form() {
   const [points, setPoints] = useState<number>(0);
   const [sendEmail, setSendEmail] = useState<boolean>(false);
   const [selectedStudents, setSelectedStudents] = useState<StudentOption[]>([]);
-
-  // Map students to options for the Select component
-  const studentOptions: { value: string; label: string }[] = students.map((student) => ({
-    value: student.id,
-    label: `${student.first_name} ${student.last_name}`,
-  }));
-
-  // Router hook to redirect after form submission
-  const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [isTashjee, setIsTashjee] = useState<boolean>();
+  // const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
 
   useEffect(() => {
+    // Called one time when the component is first rendered.
     async function fetchData() {
       try {
         const [studentsRes, categoriesRes, eventsRes] = await Promise.all([
@@ -70,6 +66,20 @@ export default function Form() {
     fetchData();
   }, []);
 
+  // Map students to options asrequired by Select component
+  const studentOptions: { value: string; label: string }[] = students.map((student) => ({
+    value: student.id,
+    label: `${student.first_name} ${student.last_name}`,
+  }));
+
+  const filterEvents = useMemo(() => {
+    return events.filter((event) => {
+      const matchesType = isTashjee ? event.points > 0 : event.points < 0;
+      const matchesCategory = !selectedCategory || event.category === selectedCategory;
+      return matchesType && matchesCategory; // Return true if both conditions are met
+    });
+  }, [events, selectedCategory, isTashjee]);
+
   const handleEventChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const eventTypeId = parseInt(event.target.value, 10);
     const eventObj = events.find((e) => e.id === eventTypeId) || null;
@@ -82,13 +92,14 @@ export default function Form() {
     }
   };
 
+  // Router hook to redirect after form submission
+  const router = useRouter();
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
     // Get all selected student IDs
-    // const select = e.currentTarget.querySelector('select[name="studentName"]') as HTMLSelectElement;
-    // const studentIds = Array.from(select.selectedOptions).map((option) => option.value);
     const studentIds = selectedStudents.map((student) => student.value);
     const eventTypeId = formData.get("event");
     const notes = formData.get("notes");
@@ -165,13 +176,27 @@ export default function Form() {
                   <label className={styles.form_label}>Type:</label>
 
                   <div>
-                    <input className="mx-3" type="radio" id="tambeeh" name="type" value="tambeeh" />
+                    <input
+                      className="mx-3"
+                      type="radio"
+                      id="tambeeh"
+                      name="type"
+                      value="tambeeh"
+                      onChange={() => setIsTashjee(false)}
+                    />
                     <label htmlFor="tambeeh" className="form-check-label">
                       Tambeeh
                     </label>
                   </div>
                   <div>
-                    <input className="mx-3" type="radio" id="tashjee" name="type" value="tashjee" />
+                    <input
+                      className="mx-3"
+                      type="radio"
+                      id="tashjee"
+                      name="type"
+                      value="tashjee"
+                      onChange={() => setIsTashjee(true)}
+                    />
                     <label htmlFor="tashjee" className="form-check-label">
                       Tashjee
                     </label>
@@ -181,8 +206,12 @@ export default function Form() {
                   <label htmlFor="category" className={styles.form_label}>
                     Category:
                   </label>
-                  <select className="form-select" id="category" name="category">
-                    <option>Select category</option>
+                  <select
+                    className="form-select"
+                    id="category"
+                    name="category"
+                    onChange={(e) => setSelectedCategory(e.target.value)}>
+                    <option> Select category</option>
                     {categories.map((category) => (
                       <option key={category} value={category}>
                         {category}
@@ -196,7 +225,7 @@ export default function Form() {
                   </label>
                   <select className="form-select" id="event" name="event" onChange={handleEventChange}>
                     <option>Select event</option>
-                    {events.map((event) => (
+                    {filterEvents.map((event) => (
                       <option key={event.id} value={event.id}>
                         {event.name}
                       </option>
