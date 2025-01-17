@@ -2,6 +2,7 @@
 "use client";
 
 import { createBrowserClient } from "@supabase/ssr";
+import { NextResponse } from "next/server";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -21,10 +22,15 @@ export default function LoginPage() {
       },
     });
 
+    if (data) {
+      console.log("Google login response:", data);
+    }
+    if (data.url) {
+      return NextResponse.redirect(data.url);
+    }
+
     if (error) {
       console.error("Error logging in with Google:", error.message);
-    } else {
-      router.push("/");
     }
 
     const {

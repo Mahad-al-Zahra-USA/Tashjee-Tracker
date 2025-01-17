@@ -1,3 +1,4 @@
+// auth/callback/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
@@ -5,6 +6,7 @@ let BaseURL = process.env.NEXT_PUBLIC_SITE_URL;
 BaseURL = "http://localhost:3000";
 
 export async function GET(request: Request) {
+  console.log("GET /auth/callback reached");
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code"); // Extract the authorization code from the query params
 

@@ -1,3 +1,4 @@
+// src/middleware.ts
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -40,6 +41,12 @@ export async function middleware(request: NextRequest) {
   const {
     data: { session },
   } = await supabase.auth.getSession();
+
+  if (session) {
+    console.log("User is logged in:", session.user.email);
+  } else {
+    console.log("No active session. User is not logged in.");
+  }
 
   const path = request.nextUrl.pathname;
 
