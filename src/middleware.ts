@@ -1,8 +1,12 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  if (request.nextUrl.pathname != "/auth/callback") {
+    // Skip the session check after login flow callback route to allow redirection to the home page
+    return await updateSession(request);
+  }
+  return NextResponse.next();
 }
 
 export const config = {
